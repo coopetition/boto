@@ -44,6 +44,7 @@ from boto.utils import compute_md5, compute_hash
 from boto.utils import find_matching_headers
 from boto.utils import merge_headers_by_name
 
+os.environ.setdefault("BOTO_SKIP_MD5_CHECK", "False")
 
 class Key(object):
     """
@@ -978,9 +979,10 @@ class Key(object):
                 'x-amz-server-side-encryption-customer-algorithm', None)
             if server_side_encryption_customer_algorithm is None:
                 if self.etag != '"%s"' % md5:
-                    raise provider.storage_data_error(
-                        'ETag from S3 did not match computed MD5. '
-                        '%s vs. %s' % (self.etag, self.md5))
+                    if os.environ['BOTO_SKIP_MD5_CHECK'] != "True":
+                        raise provider.storage_data_error(
+                            'ETag from S3 did not match computed MD5. '
+                            '%s vs. %s' % (self.etag, self.md5))
 
             return True
 
